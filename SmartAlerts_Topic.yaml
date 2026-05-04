@@ -1,0 +1,99 @@
+kind: AdaptiveDialog
+modelDescription: |
+  Smart Alerts AI Summary Topic — receives a SharePoint change payload from Power Automate
+  and returns a plain-English summary of what changed and why it matters.
+
+# Smart Alerts — Copilot Studio Topic
+# Topic Name: GenerateAlertSummary
+# Trigger: Called via Power Automate HTTP action (not conversational trigger)
+
+topic:
+  name: GenerateAlertSummary
+  displayName: Generate Alert Summary
+  description: >
+    Receives a structured change payload from Power Automate and generates
+    a plain-English summary explaining what changed in SharePoint and why
+    it may be relevant to the subscriber.
+
+  # Input variables passed from Power Automate
+  inputVariables:
+    - name: ItemTitle
+      type: String
+      description: Title of the SharePoint item that changed
+    - name: ListName
+      type: String
+      description: Name of the list or library where the change occurred
+    - name: ChangeType
+      type: String
+      description: "Created, Modified, or Deleted"
+    - name: ChangedBy
+      type: String
+      description: Display name of the user who made the change
+    - name: ChangeTimestamp
+      type: String
+      description: Date and time the change occurred
+    - name: ChangedFields
+      type: String
+      description: JSON string of field names that changed
+    - name: BeforeValues
+      type: String
+      description: JSON string of values before the change
+    - name: AfterValues
+      type: String
+      description: JSON string of values after the change
+    - name: SiteURL
+      type: String
+      description: URL of the SharePoint site
+    - name: ItemURL
+      type: String
+      description: Direct URL to the changed item
+
+  # Output variable returned to Power Automate
+  outputVariables:
+    - name: AlertSummary
+      type: String
+      description: Plain-English AI-generated summary of the change
+
+  # Generative AI prompt
+  generativeAnswers:
+    enabled: true
+    prompt: |
+      You are an intelligent alert system for a Microsoft SharePoint environment.
+      Your job is to read a change event and write a clear, concise, human-readable
+      summary that tells the recipient what changed, who changed it, and why it
+      might be relevant to them.
+
+      Write in plain English. Be specific about what changed — reference actual
+      field names and values where helpful. Keep it under 4 sentences.
+      Do not use jargon. Do not repeat yourself. Do not start with "I".
+
+      Change details:
+      - Item: {ItemTitle}
+      - List/Library: {ListName}
+      - Change type: {ChangeType}
+      - Changed by: {ChangedBy}
+      - When: {ChangeTimestamp}
+      - Fields that changed: {ChangedFields}
+      - Before: {BeforeValues}
+      - After: {AfterValues}
+
+      Examples of good summaries:
+      - "The status of 'Q2 Budget Approval' was changed from 'In Review' to 'Approved' by Sarah Chen on Monday at 2:14 PM. This item may now be ready for the next stage of your workflow."
+      - "A new document 'Contract_v3_Final.docx' was uploaded to the Legal Contracts library by Marcus Webb. This is the first version of this document in the library."
+      - "The 'Assigned To' field on 'IT Ticket #1042' was changed from 'Unassigned' to 'Jessica Graf' by the IT Manager. You may now be responsible for this item."
+
+      Now write the summary for the change described above.
+
+  # Response configuration
+  response:
+    outputVariable: AlertSummary
+    format: PlainText
+    maxLength: 500
+
+# Deployment notes:
+# 1. Create this topic in your Copilot Studio agent
+# 2. Enable the topic to be triggered via Power Automate (HTTP action)
+# 3. In Power Automate, use the "Call an action" connector to invoke this topic
+# 4. Pass all input variables as a JSON body
+# 5. Parse the response to extract AlertSummary
+# 6. Use AlertSummary in your email/Teams notification
